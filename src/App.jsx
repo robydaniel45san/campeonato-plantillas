@@ -5,6 +5,11 @@ import { CampeonatoProvider } from '@/context/CampeonatoContext'
 import { ToastProvider } from '@/components/ui/Toast'
 import Layout from '@/components/layout/Layout'
 import Login from '@/pages/Login'
+import PublicoIndex from '@/pages/publico/PublicoIndex'
+import PublicoLayout from '@/pages/publico/PublicoLayout'
+import PublicoFixture from '@/pages/publico/PublicoFixture'
+import PublicoPosiciones from '@/pages/publico/PublicoPosiciones'
+import PublicoGoleadores from '@/pages/publico/PublicoGoleadores'
 import Dashboard from '@/pages/Dashboard'
 import Campeonatos from '@/pages/Campeonatos'
 import Equipos from '@/pages/Equipos'
@@ -57,6 +62,15 @@ function AppRoutes() {
         <Route path="estadisticas" element={<Estadisticas />} />
         <Route path="configuracion" element={<Configuracion />} />
       </Route>
+      {/* Rutas públicas — sin auth */}
+      <Route path="/p" element={<PublicoIndex />} />
+      <Route path="/p/:campeonatoId" element={<PublicoLayout />}>
+        <Route index element={<Navigate to="fixture" replace />} />
+        <Route path="fixture"    element={<PublicoFixture />} />
+        <Route path="posiciones" element={<PublicoPosiciones />} />
+        <Route path="goleadores" element={<PublicoGoleadores />} />
+      </Route>
+
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )

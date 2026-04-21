@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, Pencil, Trash2, Trophy, Calendar } from 'lucide-react'
+import { Plus, Pencil, Trash2, Trophy, Calendar, Link2 } from 'lucide-react'
 import { useCampeonatos, useCampeonatoMutations } from '@/hooks/useCampeonatos'
 import { useCampeonato } from '@/context/CampeonatoContext'
 import { useToast } from '@/components/ui/Toast'
@@ -95,6 +95,16 @@ export default function Campeonatos() {
               <div className="flex gap-2 pt-3 border-t border-gray-50">
                 <Button variant="secondary" size="sm" className="flex-1" onClick={() => seleccionarCampeonato(c)}>
                   Seleccionar
+                </Button>
+                <Button
+                  variant="ghost" size="icon"
+                  title="Copiar enlace público"
+                  onClick={() => {
+                    navigator.clipboard.writeText(`${window.location.origin}/p/${c.id}/fixture`)
+                    toast('Enlace copiado al portapapeles')
+                  }}
+                >
+                  <Link2 size={15} />
                 </Button>
                 <Button variant="ghost" size="icon" onClick={() => abrirEditar(c)}>
                   <Pencil size={15} />
