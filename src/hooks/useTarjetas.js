@@ -10,11 +10,11 @@ export function useDisciplina(campeonatoId) {
         .from('tarjetas')
         .select(`
           *,
-          partido:partidos!inner(campeonato_id),
+          partidos!inner(campeonato_id),
           jugador:jugadores(id, nombre, apellido, foto_url, posicion),
           equipo:equipos(id, nombre, escudo_url, color_principal)
         `)
-        .eq('partido.campeonato_id', campeonatoId)
+        .eq('partidos.campeonato_id', campeonatoId)
       if (error) throw error
 
       // Agrupar por jugador

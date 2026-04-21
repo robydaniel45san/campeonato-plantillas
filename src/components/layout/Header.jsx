@@ -1,9 +1,9 @@
-import { ChevronDown, Trophy } from 'lucide-react'
+import { ChevronDown, Trophy, Menu } from 'lucide-react'
 import { useState } from 'react'
 import { useCampeonato } from '@/context/CampeonatoContext'
 import { cn } from '@/lib/utils'
 
-export function Header({ title }) {
+export function Header({ title, onMenuClick }) {
   const { campeonatoActivo, campeonatos, seleccionarCampeonato } = useCampeonato()
   const [open, setOpen] = useState(false)
 
@@ -15,8 +15,16 @@ export function Header({ title }) {
   }
 
   return (
-    <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-6 sticky top-0 z-20">
-      <h1 className="text-lg font-semibold text-gray-900">{title}</h1>
+    <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-4 md:px-6 sticky top-0 z-20">
+      <div className="flex items-center gap-3">
+        <button
+          onClick={onMenuClick}
+          className="lg:hidden p-2 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors"
+        >
+          <Menu size={20} />
+        </button>
+        <h1 className="text-lg font-semibold text-gray-900">{title}</h1>
+      </div>
 
       {campeonatos.length > 0 && (
         <div className="relative">

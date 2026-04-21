@@ -287,20 +287,20 @@ create policy "lectura_publica" on partidos     for select using (true);
 create policy "lectura_publica" on goles        for select using (true);
 create policy "lectura_publica" on tarjetas     for select using (true);
 
--- Solo autenticados pueden escribir
-create policy "escritura_auth" on campeonatos  for all using (auth.role() = 'authenticated');
-create policy "escritura_auth" on temporadas   for all using (auth.role() = 'authenticated');
-create policy "escritura_auth" on equipos      for all using (auth.role() = 'authenticated');
-create policy "escritura_auth" on inscripciones for all using (auth.role() = 'authenticated');
-create policy "escritura_auth" on jugadores    for all using (auth.role() = 'authenticated');
-create policy "escritura_auth" on fases        for all using (auth.role() = 'authenticated');
-create policy "escritura_auth" on grupos       for all using (auth.role() = 'authenticated');
-create policy "escritura_auth" on grupo_equipos for all using (auth.role() = 'authenticated');
-create policy "escritura_auth" on canchas      for all using (auth.role() = 'authenticated');
-create policy "escritura_auth" on arbitros     for all using (auth.role() = 'authenticated');
-create policy "escritura_auth" on partidos     for all using (auth.role() = 'authenticated');
-create policy "escritura_auth" on goles        for all using (auth.role() = 'authenticated');
-create policy "escritura_auth" on tarjetas     for all using (auth.role() = 'authenticated');
+-- Solo autenticados pueden escribir (using + with check para cubrir INSERT/UPDATE/DELETE)
+create policy "escritura_auth" on campeonatos   for all using (auth.uid() is not null) with check (auth.uid() is not null);
+create policy "escritura_auth" on temporadas    for all using (auth.uid() is not null) with check (auth.uid() is not null);
+create policy "escritura_auth" on equipos       for all using (auth.uid() is not null) with check (auth.uid() is not null);
+create policy "escritura_auth" on inscripciones for all using (auth.uid() is not null) with check (auth.uid() is not null);
+create policy "escritura_auth" on jugadores     for all using (auth.uid() is not null) with check (auth.uid() is not null);
+create policy "escritura_auth" on fases         for all using (auth.uid() is not null) with check (auth.uid() is not null);
+create policy "escritura_auth" on grupos        for all using (auth.uid() is not null) with check (auth.uid() is not null);
+create policy "escritura_auth" on grupo_equipos for all using (auth.uid() is not null) with check (auth.uid() is not null);
+create policy "escritura_auth" on canchas       for all using (auth.uid() is not null) with check (auth.uid() is not null);
+create policy "escritura_auth" on arbitros      for all using (auth.uid() is not null) with check (auth.uid() is not null);
+create policy "escritura_auth" on partidos      for all using (auth.uid() is not null) with check (auth.uid() is not null);
+create policy "escritura_auth" on goles         for all using (auth.uid() is not null) with check (auth.uid() is not null);
+create policy "escritura_auth" on tarjetas      for all using (auth.uid() is not null) with check (auth.uid() is not null);
 
 -- =====================================================
 -- TRIGGERS: updated_at automático

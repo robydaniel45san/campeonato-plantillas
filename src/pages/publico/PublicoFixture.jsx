@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
-import { Calendar, MapPin, Clock, CheckCircle2, Loader2 } from 'lucide-react'
+import { Calendar, MapPin, Clock, Loader2 } from 'lucide-react'
 import { formatDateTime, ESTADO_PARTIDO } from '@/lib/utils'
 
 function usePartidosPublicos(campeonatoId) {
