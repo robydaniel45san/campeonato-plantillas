@@ -59,7 +59,7 @@ export default function Dashboard() {
             <Trophy size={28} />
           </div>
         </div>
-        <div className="flex gap-4 mt-4 text-sm">
+        <div className="flex flex-wrap gap-2 mt-4 text-sm">
           {campeonatoActivo.fecha_inicio && (
             <span className="bg-white/20 px-3 py-1 rounded-full">
               Inicio: {new Date(campeonatoActivo.fecha_inicio).toLocaleDateString('es-BO')}
@@ -108,22 +108,24 @@ export default function Dashboard() {
               {data?.partidos.map(p => {
                 const est = ESTADO_PARTIDO[p.estado]
                 return (
-                  <div key={p.id} className="flex items-center gap-4 p-3 rounded-xl hover:bg-gray-50 transition-colors">
-                    <div className="text-xs text-gray-400 w-32 flex-shrink-0">
+                  <div key={p.id} className="p-3 rounded-xl hover:bg-gray-50 transition-colors">
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 flex items-center gap-2 min-w-0 text-sm">
+                        <span className="font-medium text-gray-800 text-right flex-1 min-w-0 truncate">{p.equipo_local?.nombre}</span>
+                        {p.estado === 'finalizado' ? (
+                          <span className="font-bold text-gray-900 bg-gray-100 px-2 py-1 rounded-lg text-base flex-shrink-0">
+                            {p.goles_local}—{p.goles_visitante}
+                          </span>
+                        ) : (
+                          <span className="text-gray-400 px-2 flex-shrink-0">vs</span>
+                        )}
+                        <span className="font-medium text-gray-800 text-left flex-1 min-w-0 truncate">{p.equipo_visitante?.nombre}</span>
+                      </div>
+                      <Badge className={est?.color}>{est?.label}</Badge>
+                    </div>
+                    <p className="text-xs text-gray-400 mt-1 pl-0">
                       {p.fecha ? formatDateTime(p.fecha) : 'Sin fecha'}
-                    </div>
-                    <div className="flex-1 flex items-center justify-center gap-3 text-sm">
-                      <span className="font-medium text-gray-800 text-right flex-1">{p.equipo_local?.nombre}</span>
-                      {p.estado === 'finalizado' ? (
-                        <span className="font-bold text-gray-900 bg-gray-100 px-3 py-1 rounded-lg text-base">
-                          {p.goles_local} — {p.goles_visitante}
-                        </span>
-                      ) : (
-                        <span className="text-gray-400 px-3">vs</span>
-                      )}
-                      <span className="font-medium text-gray-800 text-left flex-1">{p.equipo_visitante?.nombre}</span>
-                    </div>
-                    <Badge className={est?.color}>{est?.label}</Badge>
+                    </p>
                   </div>
                 )
               })}

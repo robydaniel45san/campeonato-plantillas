@@ -16,7 +16,13 @@ export function usePosiciones(campeonatoId, grupoId) {
 
       const { data, error } = await q
       if (error) throw error
-      return data
+      // Ordenar: pts desc → dg desc → gf desc → nombre asc
+      return (data ?? []).sort((a, b) =>
+        b.pts - a.pts ||
+        Number(b.dg) - Number(a.dg) ||
+        b.gf - a.gf ||
+        (a.nombre ?? '').localeCompare(b.nombre ?? '')
+      )
     },
   })
 }

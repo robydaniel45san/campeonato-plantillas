@@ -107,15 +107,20 @@ export default function Estadisticas() {
             <p className="text-gray-400 text-sm text-center py-8">Sin goles registrados</p>
           ) : (
             <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={top10} layout="vertical" margin={{ left: 100, right: 20, top: 0, bottom: 0 }}>
+              <BarChart data={top10} layout="vertical" margin={{ left: 4, right: 16, top: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                <XAxis type="number" allowDecimals={false} tick={{ fontSize: 12 }} />
+                <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11 }} />
                 <YAxis
                   dataKey="nombre"
                   type="category"
-                  tick={{ fontSize: 12 }}
-                  tickFormatter={(v, i) => `${top10[i]?.nombre} ${top10[i]?.apellido ?? ''}`}
-                  width={100}
+                  tick={{ fontSize: 11 }}
+                  tickFormatter={(v, i) => {
+                    const n = top10[i]
+                    if (!n) return ''
+                    const full = `${n.nombre} ${n.apellido ?? ''}`
+                    return full.length > 12 ? full.slice(0, 12) + '…' : full
+                  }}
+                  width={88}
                 />
                 <Tooltip
                   formatter={(v) => [`${v} goles`, 'Goles']}
