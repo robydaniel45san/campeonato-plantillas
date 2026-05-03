@@ -153,6 +153,16 @@ export default function Partidos() {
 
   const guardar = async () => {
     try {
+      // Validar duplicados: mismo par de equipos ya en este campeonato
+      const duplicado = partidos?.find(p =>
+        (p.equipo_local_id === form.equipo_local_id && p.equipo_visitante_id === form.equipo_visitante_id) ||
+        (p.equipo_local_id === form.equipo_visitante_id && p.equipo_visitante_id === form.equipo_local_id)
+      )
+      if (duplicado) {
+        const jornada = duplicado.jornada ? ` (J${duplicado.jornada})` : ''
+        toast(`Este enfrentamiento ya existe${jornada}`, 'error')
+        return
+      }
       const payload = { ...form, campeonato_id: campeonatoActivo.id }
       if (!payload.fecha) delete payload.fecha
       if (!payload.cancha_id) delete payload.cancha_id
@@ -196,52 +206,52 @@ export default function Partidos() {
           {partidosFiltrados?.map(p => {
             const est = ESTADO_PARTIDO[p.estado]
             return (
-              <Card key={p.id} className="p-4 hover:shadow-md transition-shadow">
-                <div className="flex items-center gap-4">
-                  {/* Jornada */}
+              <Card key={p.id} className="p-3 sm:p-4 hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-2 sm:gap-4">
+                  {/* Jornada - solo desktop */}
                   {p.jornada && (
-                    <div className="hidden sm:flex flex-col items-center text-xs text-gray-400 w-12 flex-shrink-0">
+                    <div className="hidden sm:flex flex-col items-center text-xs text-gray-400 w-10 flex-shrink-0">
                       <span className="font-semibold text-gray-600">J{p.jornada}</span>
                     </div>
                   )}
 
                   {/* Equipos y marcador */}
-                  <div className="flex-1 flex items-center gap-3">
-                    <div className="flex-1 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <span className="font-semibold text-gray-900 text-sm">{p.equipo_local?.nombre}</span>
-                        <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: p.equipo_local?.color_principal }} />
+                  <div className="flex-1 flex items-center gap-2 min-w-0">
+                    <div className="flex-1 text-right min-w-0">
+                      <div className="flex items-center justify-end gap-1.5 min-w-0">
+                        <span className="font-semibold text-gray-900 text-sm truncate">{p.equipo_local?.nombre}</span>
+                        <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: p.equipo_local?.color_principal }} />
                       </div>
                     </div>
 
-                    <div className="flex-shrink-0 min-w-20 text-center">
+                    <div className="flex-shrink-0 w-14 sm:min-w-20 text-center">
                       {p.estado === 'finalizado' || p.estado === 'en_curso' ? (
-                        <span className="font-bold text-lg text-gray-900 bg-gray-100 px-3 py-1 rounded-lg">
-                          {p.goles_local} — {p.goles_visitante}
+                        <span className="font-bold text-base sm:text-lg text-gray-900 bg-gray-100 px-2 py-1 rounded-lg whitespace-nowrap">
+                          {p.goles_local}—{p.goles_visitante}
                         </span>
                       ) : (
                         <span className="text-gray-400 text-sm font-medium">vs</span>
                       )}
                     </div>
 
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: p.equipo_visitante?.color_principal }} />
-                        <span className="font-semibold text-gray-900 text-sm">{p.equipo_visitante?.nombre}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: p.equipo_visitante?.color_principal }} />
+                        <span className="font-semibold text-gray-900 text-sm truncate">{p.equipo_visitante?.nombre}</span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Meta info */}
+                  {/* Meta info - solo desktop */}
                   <div className="hidden md:flex flex-col items-end gap-1 text-xs text-gray-400 flex-shrink-0">
                     {p.fecha && <span>{formatDateTime(p.fecha)}</span>}
                     {p.cancha && <span>{p.cancha.nombre}</span>}
                   </div>
 
-                  <Badge className={est?.color}>{est?.label}</Badge>
+                  <Badge className={`${est?.color} hidden xs:inline-flex sm:inline-flex`}>{est?.label}</Badge>
 
                   {/* Acciones */}
-                  <div className="flex items-center gap-1 flex-shrink-0">
+                  <div className="flex items-center gap-0.5 flex-shrink-0">
                     <Button variant="ghost" size="icon" onClick={() => setModalRes(p)} title="Cargar resultado">
                       {p.estado === 'finalizado' ? <Pencil size={14} /> : <Play size={14} className="text-green-600" />}
                     </Button>
@@ -250,6 +260,14 @@ export default function Partidos() {
                       <Trash2 size={14} />
                     </Button>
                   </div>
+                </div>
+
+                {/* Info secundaria en móvil */}
+                <div className="flex items-center gap-2 mt-1.5 sm:hidden flex-wrap">
+                  <Badge className={est?.color}>{est?.label}</Badge>
+                  {p.jornada && <span className="text-xs text-gray-400">J{p.jornada}</span>}
+                  {p.fecha && <span className="text-xs text-gray-400">{formatDateTime(p.fecha)}</span>}
+                  {p.cancha && <span className="text-xs text-gray-400">· {p.cancha.nombre}</span>}
                 </div>
               </Card>
             )

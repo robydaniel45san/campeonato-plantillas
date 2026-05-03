@@ -111,12 +111,24 @@ export default function PublicoFixture() {
                     enCurso ? 'border-green-500/50 shadow-lg shadow-green-900/20' : 'border-gray-800'
                   }`}
                 >
-                  {enCurso && (
-                    <div className="flex items-center gap-1.5 mb-3">
-                      <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                      <span className="text-xs text-green-400 font-semibold uppercase tracking-wide">En curso</span>
+                  {/* Estado badge — siempre visible */}
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-1.5">
+                      {enCurso && <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />}
+                      <span className={`text-xs font-semibold uppercase tracking-wide ${
+                        enCurso ? 'text-green-400' :
+                        finalizado ? 'text-gray-500' :
+                        'text-blue-400'
+                      }`}>
+                        {est?.label ?? p.estado}
+                      </span>
                     </div>
-                  )}
+                    {p.fase && (
+                      <span className="text-xs text-gray-600 bg-gray-800 px-2 py-0.5 rounded-full">
+                        {p.fase.nombre}
+                      </span>
+                    )}
+                  </div>
 
                   <div className="flex items-center gap-3">
                     {/* Equipo local */}
@@ -154,20 +166,19 @@ export default function PublicoFixture() {
 
                   {/* Meta info */}
                   <div className="flex items-center justify-center gap-3 mt-3 flex-wrap">
-                    {p.fecha && !enCurso && !finalizado && (
+                    {p.fecha ? (
                       <span className="flex items-center gap-1 text-xs text-gray-500">
                         <Clock size={11} />
                         {formatDateTime(p.fecha)}
                       </span>
+                    ) : (
+                      <span className="text-xs text-gray-700 italic">Sin fecha programada</span>
                     )}
                     {p.cancha && (
                       <span className="flex items-center gap-1 text-xs text-gray-500">
                         <MapPin size={11} />
                         {p.cancha.nombre}
                       </span>
-                    )}
-                    {p.fase && (
-                      <span className="text-xs text-gray-600">{p.fase.nombre}</span>
                     )}
                   </div>
                 </div>

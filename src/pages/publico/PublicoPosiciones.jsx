@@ -14,9 +14,15 @@ function usePosicionesPublico(campeonatoId) {
         .eq('campeonato_id', campeonatoId)
       if (error) throw error
 
+      const sorted = (data ?? []).sort((a, b) =>
+        b.pts - a.pts ||
+        Number(b.dg) - Number(a.dg) ||
+        b.gf - a.gf ||
+        (a.nombre ?? '').localeCompare(b.nombre ?? '')
+      )
       // Agrupar por grupo_id
       const grupos = new Map()
-      for (const row of data) {
+      for (const row of sorted) {
         const key = row.grupo_id ?? '__general__'
         if (!grupos.has(key)) grupos.set(key, [])
         grupos.get(key).push(row)

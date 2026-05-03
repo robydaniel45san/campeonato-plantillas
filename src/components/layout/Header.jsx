@@ -30,18 +30,18 @@ export function Header({ title, onMenuClick }) {
         <div className="relative">
           <button
             onClick={() => setOpen(!open)}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors text-sm"
+            className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors text-sm"
           >
-            <Trophy size={14} className="text-green-600" />
-            <span className="font-medium text-gray-700 max-w-40 truncate">
+            <Trophy size={14} className="text-green-600 flex-shrink-0" />
+            <span className="font-medium text-gray-700 max-w-24 sm:max-w-40 truncate">
               {campeonatoActivo?.nombre ?? 'Seleccionar'}
             </span>
             {campeonatoActivo && (
-              <span className={cn('px-1.5 py-0.5 rounded-full text-xs font-medium', estadoColor[campeonatoActivo.estado])}>
+              <span className={cn('hidden sm:inline px-1.5 py-0.5 rounded-full text-xs font-medium', estadoColor[campeonatoActivo.estado])}>
                 {campeonatoActivo.estado}
               </span>
             )}
-            <ChevronDown size={14} className="text-gray-400" />
+            <ChevronDown size={14} className="text-gray-400 flex-shrink-0" />
           </button>
 
           {open && (

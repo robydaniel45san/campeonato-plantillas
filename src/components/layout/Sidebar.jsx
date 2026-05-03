@@ -2,7 +2,7 @@ import { NavLink } from 'react-router-dom'
 import {
   Trophy, LayoutDashboard, Shield, Users, Calendar,
   BarChart2, Table2, Settings, ChevronLeft, ChevronRight,
-  LogOut, Layers,
+  LogOut, Layers, X,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/context/AuthContext'
@@ -20,29 +20,36 @@ const nav = [
   { to: '/configuracion',icon: Settings,        label: 'Configuración' },
 ]
 
-export function Sidebar({ collapsed, setCollapsed }) {
+export function Sidebar({ collapsed, setCollapsed, mobile = false, onClose }) {
   const { signOut, user } = useAuth()
   const { campeonatoActivo } = useCampeonato()
 
   return (
     <aside
       className={cn(
-        'fixed top-0 left-0 h-screen bg-gray-900 text-white flex flex-col z-30 transition-all duration-200',
-        collapsed ? 'w-16' : 'w-60',
+        'bg-gray-900 text-white flex flex-col transition-all duration-200',
+        mobile
+          ? 'relative h-full w-full'
+          : cn('fixed top-0 left-0 h-screen z-30', collapsed ? 'w-16' : 'w-60'),
       )}
     >
       {/* Logo */}
-      <div className={cn('flex items-center gap-3 px-4 h-16 border-b border-gray-800', collapsed && 'justify-center px-0')}>
+      <div className={cn('flex items-center gap-3 px-4 h-16 border-b border-gray-800', collapsed && !mobile && 'justify-center px-0')}>
         <div className="flex-shrink-0 w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
           <Trophy size={16} className="text-white" />
         </div>
-        {!collapsed && (
-          <div className="min-w-0">
+        {(!collapsed || mobile) && (
+          <div className="min-w-0 flex-1">
             <p className="font-semibold text-sm truncate">Campeonato</p>
             {campeonatoActivo && (
               <p className="text-xs text-gray-400 truncate">{campeonatoActivo.nombre}</p>
             )}
           </div>
+        )}
+        {mobile && onClose && (
+          <button onClick={onClose} className="p-1 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition-colors flex-shrink-0">
+            <X size={18} />
+          </button>
         )}
       </div>
 
@@ -88,13 +95,15 @@ export function Sidebar({ collapsed, setCollapsed }) {
         )}
       </div>
 
-      {/* Toggle */}
-      <button
-        onClick={() => setCollapsed(!collapsed)}
-        className="absolute -right-3 top-20 bg-gray-900 border border-gray-700 rounded-full p-1 text-gray-400 hover:text-white transition-colors"
-      >
-        {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
-      </button>
+      {/* Toggle (solo desktop) */}
+      {!mobile && (
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          className="absolute -right-3 top-20 bg-gray-900 border border-gray-700 rounded-full p-1 text-gray-400 hover:text-white transition-colors"
+        >
+          {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
+        </button>
+      )}
     </aside>
   )
 }

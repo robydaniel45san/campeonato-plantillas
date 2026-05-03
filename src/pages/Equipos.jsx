@@ -1,12 +1,12 @@
 import { useState, useRef } from 'react'
-import { Plus, Pencil, Trash2, Shield, Upload, Users } from 'lucide-react'
+import { Plus, Pencil, Trash2, Shield, Upload, Loader2 } from 'lucide-react'
 import { useEquipos, useEquipoMutations } from '@/hooks/useEquipos'
 import { useCampeonato } from '@/context/CampeonatoContext'
 import { useToast } from '@/components/ui/Toast'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Modal } from '@/components/ui/Modal'
-import { Input, Select } from '@/components/ui/Input'
+import { Input } from '@/components/ui/Input'
 import { TableSkeleton } from '@/components/ui/Skeleton'
 import { supabase } from '@/lib/supabase'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
@@ -36,7 +36,9 @@ export default function Equipos() {
   const [editId, setEditId] = useState(null)
   const [confirmDelete, setConfirmDelete] = useState(null)
   const [uploading, setUploading] = useState(false)
+  const [uploadingCardId, setUploadingCardId] = useState(null)
   const fileRef = useRef()
+  const cardFileRefs = useRef({})
 
   const inscritosIds = new Set(inscritos?.map(e => e.id) ?? [])
 
@@ -56,6 +58,7 @@ export default function Equipos() {
     }
   }
 
+  // Upload desde el modal de edición
   const handleEscudo = async (e) => {
     const file = e.target.files?.[0]
     if (!file || !editId) return
@@ -69,6 +72,23 @@ export default function Equipos() {
       toast(err.message, 'error')
     }
     setUploading(false)
+  }
+
+  // Upload directo desde la card
+  const handleEscudoCard = async (e, equipoId) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadingCardId(equipoId)
+    try {
+      const url = await uploadEscudo(file, equipoId)
+      await actualizar.mutateAsync({ id: equipoId, escudo_url: url })
+      toast('Escudo actualizado')
+    } catch (err) {
+      toast(err.message, 'error')
+    }
+    setUploadingCardId(null)
+    // reset input para permitir subir el mismo archivo de nuevo
+    if (cardFileRefs.current[equipoId]) cardFileRefs.current[equipoId].value = ''
   }
 
   const borrar = async () => {
@@ -106,37 +126,81 @@ export default function Equipos() {
       </div>
 
       {isLoading ? <TableSkeleton rows={5} cols={1} /> : (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {equipos?.map(e => {
             const inscrito = inscritosIds.has(e.id)
+            const isUploadingThis = uploadingCardId === e.id
+            const inicial = (e.nombre?.[0] ?? '?').toUpperCase()
+
             return (
-              <Card key={e.id} className="p-4 hover:shadow-md transition-shadow">
-                <div className="flex items-center gap-3 mb-3">
-                  {e.escudo_url ? (
-                    <img src={e.escudo_url} alt={e.nombre} className="w-12 h-12 object-contain rounded-lg bg-gray-50" />
-                  ) : (
-                    <div
-                      className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
-                      style={{ backgroundColor: e.color_principal + '22' }}
-                    >
-                      <Shield size={24} style={{ color: e.color_principal }} />
-                    </div>
-                  )}
-                  <div className="min-w-0">
-                    <h3 className="font-semibold text-gray-900 text-sm truncate">{e.nombre}</h3>
-                    {e.ciudad && <p className="text-xs text-gray-400">{e.ciudad}</p>}
-                    <div className="flex gap-1 mt-1">
-                      <span className="w-3 h-3 rounded-full border border-gray-200" style={{ backgroundColor: e.color_principal }} />
-                      <span className="w-3 h-3 rounded-full border border-gray-200" style={{ backgroundColor: e.color_secundario }} />
-                    </div>
+              <Card key={e.id} className="overflow-hidden p-0 hover:shadow-lg transition-shadow">
+                {/* Zona del escudo */}
+                <div
+                  className="relative flex flex-col items-center pt-7 pb-5 px-4"
+                  style={{
+                    background: `linear-gradient(135deg, ${e.color_principal}28 0%, ${e.color_secundario}14 100%)`,
+                    borderBottom: `2px solid ${e.color_principal}30`,
+                  }}
+                >
+                  {/* Puntos de color arriba-derecha */}
+                  <div className="absolute top-3 right-3 flex gap-1.5">
+                    <span className="w-3.5 h-3.5 rounded-full border-2 border-white shadow-sm" style={{ backgroundColor: e.color_principal }} title="Color principal" />
+                    <span className="w-3.5 h-3.5 rounded-full border-2 border-white shadow-sm" style={{ backgroundColor: e.color_secundario }} title="Color secundario" />
                   </div>
+
+                  {/* Escudo con overlay de upload */}
+                  <div className="relative group">
+                    {e.escudo_url ? (
+                      <img
+                        src={e.escudo_url}
+                        alt={e.nombre}
+                        className="w-20 h-20 object-contain rounded-2xl bg-white shadow-md border border-white/60"
+                      />
+                    ) : (
+                      <div
+                        className="w-20 h-20 rounded-2xl flex items-center justify-center text-3xl font-black shadow-md border border-white/40"
+                        style={{ backgroundColor: e.color_principal + '33', color: e.color_principal }}
+                      >
+                        {inicial}
+                      </div>
+                    )}
+
+                    {/* Overlay hover para subir escudo */}
+                    <label
+                      className="absolute inset-0 rounded-2xl bg-black/55 flex flex-col items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                      title="Cambiar escudo"
+                    >
+                      <Upload size={18} className="text-white" />
+                      <span className="text-white text-[10px] font-semibold">Subir</span>
+                      <input
+                        ref={el => { cardFileRefs.current[e.id] = el }}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={ev => handleEscudoCard(ev, e.id)}
+                      />
+                    </label>
+
+                    {/* Spinner mientras sube */}
+                    {isUploadingThis && (
+                      <div className="absolute inset-0 rounded-2xl bg-black/60 flex items-center justify-center">
+                        <Loader2 size={22} className="text-white animate-spin" />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Nombre y ciudad */}
+                  <h3 className="font-bold text-gray-900 text-base text-center truncate w-full mt-3 leading-tight">{e.nombre}</h3>
+                  {e.ciudad && <p className="text-xs text-gray-500 text-center mt-0.5">{e.ciudad}</p>}
+                  {e.fundado_en && <p className="text-xs text-gray-400 text-center">Fundado {e.fundado_en}</p>}
                 </div>
 
-                <div className="flex gap-1.5 flex-wrap">
+                {/* Acciones */}
+                <div className="flex gap-1.5 p-3">
                   {campeonatoActivo && (
                     <button
                       onClick={() => toggleInscripcion(e)}
-                      className={`flex-1 text-xs px-2 py-1 rounded-lg font-medium transition-colors ${
+                      className={`flex-1 text-xs px-2 py-1.5 rounded-lg font-semibold transition-colors ${
                         inscrito
                           ? 'bg-green-100 text-green-700 hover:bg-green-200'
                           : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -163,27 +227,49 @@ export default function Equipos() {
         </div>
       )}
 
-      {/* Modal */}
+      {/* Modal edición */}
       <Modal open={modal} onClose={() => setModal(false)} title={editId ? 'Editar equipo' : 'Nuevo equipo'}>
         <div className="space-y-4">
+          {/* Escudo centrado en modal */}
           {editId && (
-            <div className="flex items-center gap-4 p-3 bg-gray-50 rounded-xl">
-              {form.escudo_url ? (
-                <img src={form.escudo_url} alt="escudo" className="w-14 h-14 object-contain rounded-lg bg-white" />
-              ) : (
-                <div className="w-14 h-14 rounded-xl bg-gray-200 flex items-center justify-center">
-                  <Shield size={24} className="text-gray-400" />
+            <div className="flex flex-col items-center gap-3 p-5 bg-gray-50 rounded-2xl">
+              <div
+                className="relative group cursor-pointer"
+                onClick={() => fileRef.current?.click()}
+                title="Cambiar escudo"
+              >
+                {form.escudo_url ? (
+                  <img
+                    src={form.escudo_url}
+                    alt="escudo"
+                    className="w-24 h-24 object-contain rounded-2xl bg-white shadow border border-gray-200"
+                  />
+                ) : (
+                  <div className="w-24 h-24 rounded-2xl bg-gray-200 flex items-center justify-center shadow-inner">
+                    <Shield size={32} className="text-gray-400" />
+                  </div>
+                )}
+                <div className="absolute inset-0 rounded-2xl bg-black/45 flex flex-col items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Upload size={20} className="text-white" />
+                  <span className="text-white text-xs font-semibold">Cambiar</span>
                 </div>
-              )}
-              <div>
-                <p className="text-sm font-medium text-gray-700 mb-1">Escudo del equipo</p>
-                <Button variant="secondary" size="sm" onClick={() => fileRef.current?.click()} disabled={uploading}>
+                {uploading && (
+                  <div className="absolute inset-0 rounded-2xl bg-black/55 flex items-center justify-center">
+                    <Loader2 size={24} className="text-white animate-spin" />
+                  </div>
+                )}
+              </div>
+              <div className="text-center">
+                <p className="text-sm font-semibold text-gray-700">Escudo del equipo</p>
+                <p className="text-xs text-gray-400 mt-0.5">Haz clic en el escudo o usa el botón</p>
+                <Button variant="secondary" size="sm" className="mt-2" onClick={() => fileRef.current?.click()} disabled={uploading}>
                   <Upload size={13} />{uploading ? 'Subiendo...' : 'Subir imagen'}
                 </Button>
                 <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleEscudo} />
               </div>
             </div>
           )}
+
           <Input label="Nombre *" value={form.nombre} onChange={e => setForm(f => ({ ...f, nombre: e.target.value }))} placeholder="FC Ejemplo" />
           <Input label="Ciudad" value={form.ciudad} onChange={e => setForm(f => ({ ...f, ciudad: e.target.value }))} placeholder="La Paz" />
           <Input label="Año de fundación" type="number" value={form.fundado_en} onChange={e => setForm(f => ({ ...f, fundado_en: e.target.value }))} placeholder="2000" />

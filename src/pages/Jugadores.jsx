@@ -106,7 +106,7 @@ export default function Jugadores() {
           <option value="">Todos los equipos</option>
           {equipos?.map(e => <option key={e.id} value={e.id}>{e.nombre}</option>)}
         </select>
-        <p className="text-sm text-gray-400">{jugadoresFiltrados.length} jugadores</p>
+        <p className="text-sm text-gray-400">{jugadoresFiltrados.length} {jugadoresFiltrados.length === 1 ? 'jugador' : 'jugadores'}</p>
         <Button onClick={abrirNuevo}><Plus size={16} />Nuevo jugador</Button>
       </div>
 

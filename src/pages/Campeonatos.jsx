@@ -131,7 +131,7 @@ export default function Campeonatos() {
         <div className="space-y-4">
           <Input label="Nombre *" value={form.nombre} onChange={e => setForm(f => ({ ...f, nombre: e.target.value }))} placeholder="Liga Municipal 2025" />
           <Textarea label="Descripción" value={form.descripcion} onChange={e => setForm(f => ({ ...f, descripcion: e.target.value }))} rows={2} placeholder="Descripción opcional..." />
-          <div className="grid grid-cols-2 gap-3">
+          <div className="flex flex-col sm:grid sm:grid-cols-2 gap-3">
             <Select label="Formato" value={form.formato} onChange={e => setForm(f => ({ ...f, formato: e.target.value }))}>
               {Object.entries(FORMATO_CAMPEONATO).map(([k, v]) => (
                 <option key={k} value={k}>{v}</option>

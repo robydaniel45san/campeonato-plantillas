@@ -46,10 +46,10 @@ export default function Layout() {
 
       {/* Sidebar móvil (drawer) */}
       <div className={cn(
-        'fixed top-0 left-0 h-screen z-30 lg:hidden transition-transform duration-200',
+        'fixed top-0 left-0 h-screen w-60 z-30 lg:hidden transition-transform duration-200',
         mobileOpen ? 'translate-x-0' : '-translate-x-full',
       )}>
-        <Sidebar collapsed={false} setCollapsed={() => {}} />
+        <Sidebar collapsed={false} setCollapsed={() => {}} mobile onClose={() => setMobileOpen(false)} />
       </div>
 
       {/* Contenido principal */}
