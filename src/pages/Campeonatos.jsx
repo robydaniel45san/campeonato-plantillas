@@ -23,7 +23,7 @@ const EMPTY = { nombre: '', descripcion: '', formato: 'liga', estado: 'borrador'
 export default function Campeonatos() {
   const { data: campeonatos, isLoading } = useCampeonatos()
   const { crear, actualizar, eliminar } = useCampeonatoMutations()
-  const { seleccionarCampeonato } = useCampeonato()
+  const { campeonatoActivo, seleccionarCampeonato } = useCampeonato()
   const { toast } = useToast()
   const [modal, setModal] = useState(false)
   const [form, setForm] = useState(EMPTY)
@@ -66,12 +66,20 @@ export default function Campeonatos() {
 
       {isLoading ? <TableSkeleton rows={4} cols={1} /> : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {campeonatos?.map(c => (
-            <Card key={c.id} className="p-5 hover:shadow-md transition-shadow">
+          {campeonatos?.map(c => {
+            const esActivo = campeonatoActivo?.id === c.id
+            return (
+            <Card key={c.id} className={`p-5 hover:shadow-md transition-shadow ${esActivo ? 'ring-2 ring-green-500 shadow-md shadow-green-100' : ''}`}>
+              {esActivo && (
+                <div className="flex items-center gap-1.5 mb-3 text-green-600 text-xs font-semibold">
+                  <span className="w-2 h-2 rounded-full bg-green-500 inline-block" />
+                  Campeonato activo
+                </div>
+              )}
               <div className="flex items-start justify-between gap-2 mb-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <Trophy size={20} className="text-green-600" />
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${esActivo ? 'bg-green-500' : 'bg-green-100'}`}>
+                    <Trophy size={20} className={esActivo ? 'text-white' : 'text-green-600'} />
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900 text-sm leading-tight">{c.nombre}</h3>
@@ -93,9 +101,16 @@ export default function Campeonatos() {
               )}
 
               <div className="flex gap-2 pt-3 border-t border-gray-50">
-                <Button variant="secondary" size="sm" className="flex-1" onClick={() => seleccionarCampeonato(c)}>
-                  Seleccionar
-                </Button>
+                {esActivo ? (
+                  <div className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold text-green-600 bg-green-50 rounded-lg py-1.5 px-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                    Activo
+                  </div>
+                ) : (
+                  <Button variant="secondary" size="sm" className="flex-1" onClick={() => { seleccionarCampeonato(c); toast(`${c.nombre} seleccionado`) }}>
+                    Seleccionar
+                  </Button>
+                )}
                 <Button
                   variant="ghost" size="icon"
                   title="Copiar enlace público"
@@ -114,7 +129,7 @@ export default function Campeonatos() {
                 </Button>
               </div>
             </Card>
-          ))}
+          )})}
 
           {campeonatos?.length === 0 && (
             <div className="col-span-full flex flex-col items-center justify-center py-16 text-center">

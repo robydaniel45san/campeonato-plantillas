@@ -1,16 +1,26 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 
-export function useJugadores(equipoId) {
+export function useJugadores(campeonatoId) {
   return useQuery({
-    queryKey: ['jugadores', equipoId],
+    queryKey: ['jugadores', campeonatoId],
+    enabled: !!campeonatoId,
     queryFn: async () => {
-      let q = supabase
+      // Obtener equipos inscritos en el campeonato
+      const { data: inscripciones, error: errInsc } = await supabase
+        .from('inscripciones')
+        .select('equipo_id')
+        .eq('campeonato_id', campeonatoId)
+      if (errInsc) throw errInsc
+
+      const equipoIds = inscripciones.map(i => i.equipo_id)
+      if (equipoIds.length === 0) return []
+
+      const { data, error } = await supabase
         .from('jugadores')
         .select('*, equipo:equipos(id, nombre, escudo_url, color_principal)')
+        .in('equipo_id', equipoIds)
         .order('apellido')
-      if (equipoId) q = q.eq('equipo_id', equipoId)
-      const { data, error } = await q
       if (error) throw error
       return data
     },

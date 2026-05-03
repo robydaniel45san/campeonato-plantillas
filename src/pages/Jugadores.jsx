@@ -2,6 +2,7 @@ import { useState, useRef } from 'react'
 import { Plus, Pencil, Trash2, Users, Upload, Search } from 'lucide-react'
 import { useJugadores, useJugadorMutations } from '@/hooks/useJugadores'
 import { useEquipos } from '@/hooks/useEquipos'
+import { useCampeonato } from '@/context/CampeonatoContext'
 import { useToast } from '@/components/ui/Toast'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
@@ -21,8 +22,10 @@ const POSICION_COLOR = {
 const EMPTY = { nombre: '', apellido: '', equipo_id: '', numero_dorsal: '', posicion: '', nacionalidad: '', fecha_nacimiento: '' }
 
 export default function Jugadores() {
-  const { data: jugadores, isLoading } = useJugadores()
-  const { data: equipos } = useEquipos()
+  const { campeonatoActivo } = useCampeonato()
+  const { data: jugadores, isLoading } = useJugadores(campeonatoActivo?.id)
+  // Equipos inscritos en el campeonato activo (para filtros y modal)
+  const { data: equipos } = useEquipos(campeonatoActivo?.id)
   const { crear, actualizar, eliminar, uploadFoto } = useJugadorMutations()
   const { toast } = useToast()
   const [modal, setModal] = useState(false)
@@ -84,6 +87,14 @@ export default function Jugadores() {
       toast(e.message, 'error')
     }
   }
+
+  if (!campeonatoActivo) return (
+    <div className="flex flex-col items-center justify-center py-16 text-center">
+      <Users size={48} className="text-gray-200 mb-3" />
+      <p className="text-gray-500 font-medium">Selecciona un campeonato</p>
+      <p className="text-gray-400 text-sm">Ve a Campeonatos y presiona "Seleccionar"</p>
+    </div>
+  )
 
   return (
     <div className="space-y-5">

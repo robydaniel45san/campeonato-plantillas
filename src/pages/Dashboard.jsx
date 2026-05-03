@@ -13,17 +13,24 @@ function useResumen(campeonatoId) {
     queryKey: ['dashboard', campeonatoId],
     enabled: !!campeonatoId,
     queryFn: async () => {
-      const [equipos, jugadores, partidos] = await Promise.all([
-        supabase.from('inscripciones').select('id', { count: 'exact' }).eq('campeonato_id', campeonatoId),
-        supabase.from('jugadores').select('id', { count: 'exact' }),
-        supabase.from('partidos').select('*, equipo_local:equipos!partidos_equipo_local_id_fkey(nombre,color_principal), equipo_visitante:equipos!partidos_equipo_visitante_id_fkey(nombre,color_principal)').eq('campeonato_id', campeonatoId).order('fecha').limit(6),
+      const [inscQ, partidosQ] = await Promise.all([
+        supabase.from('inscripciones').select('equipo_id').eq('campeonato_id', campeonatoId),
+        supabase.from('partidos')
+          .select('*, equipo_local:equipos!partidos_equipo_local_id_fkey(nombre,color_principal), equipo_visitante:equipos!partidos_equipo_visitante_id_fkey(nombre,color_principal)')
+          .eq('campeonato_id', campeonatoId).order('fecha').limit(6),
       ])
+
+      const equipoIds = inscQ.data?.map(i => i.equipo_id) ?? []
+      const jugadoresQ = equipoIds.length > 0
+        ? await supabase.from('jugadores').select('id', { count: 'exact', head: true }).in('equipo_id', equipoIds)
+        : { count: 0 }
+
       return {
-        equipos: equipos.count ?? 0,
-        jugadores: jugadores.count ?? 0,
-        partidos: partidos.data ?? [],
-        programados: partidos.data?.filter(p => p.estado === 'programado').length ?? 0,
-        finalizados: partidos.data?.filter(p => p.estado === 'finalizado').length ?? 0,
+        equipos: equipoIds.length,
+        jugadores: jugadoresQ.count ?? 0,
+        partidos: partidosQ.data ?? [],
+        programados: partidosQ.data?.filter(p => p.estado === 'programado').length ?? 0,
+        finalizados: partidosQ.data?.filter(p => p.estado === 'finalizado').length ?? 0,
       }
     },
   })
