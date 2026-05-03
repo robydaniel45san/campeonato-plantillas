@@ -8,17 +8,20 @@ export function useEquipos(campeonatoId) {
       if (campeonatoId) {
         const { data, error } = await supabase
           .from('inscripciones')
-          .select('equipo:equipos(*)')
+          .select('equipo:equipos(*, jugadores(id))')
           .eq('campeonato_id', campeonatoId)
         if (error) throw error
-        return data.map(d => d.equipo)
+        return data.map(d => ({
+          ...d.equipo,
+          num_jugadores: d.equipo?.jugadores?.length ?? 0,
+        }))
       }
       const { data, error } = await supabase
         .from('equipos')
-        .select('*')
+        .select('*, jugadores(id)')
         .order('nombre')
       if (error) throw error
-      return data
+      return data.map(e => ({ ...e, num_jugadores: e.jugadores?.length ?? 0 }))
     },
   })
 }

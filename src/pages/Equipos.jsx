@@ -177,6 +177,9 @@ export default function Equipos() {
                   <h3 className="font-bold text-gray-900 text-base text-center truncate w-full mt-3 leading-tight">{e.nombre}</h3>
                   {e.ciudad && <p className="text-xs text-gray-500 text-center mt-0.5">{e.ciudad}</p>}
                   {e.fundado_en && <p className="text-xs text-gray-400 text-center">Fundado {e.fundado_en}</p>}
+                  <p className="text-xs text-gray-400 text-center mt-1">
+                    {e.num_jugadores} {e.num_jugadores === 1 ? 'jugador' : 'jugadores'}
+                  </p>
                 </div>
 
                 {/* Acciones */}
