@@ -62,6 +62,8 @@ function TablaEquipos({ rows }) {
             <th className="text-center px-2 py-2">PG</th>
             <th className="text-center px-2 py-2 hidden sm:table-cell">PE</th>
             <th className="text-center px-2 py-2 hidden sm:table-cell">PP</th>
+            <th className="text-center px-2 py-2 hidden sm:table-cell">GF</th>
+            <th className="text-center px-2 py-2 hidden sm:table-cell">GC</th>
             <th className="text-center px-2 py-2 hidden md:table-cell">DG</th>
             <th className="text-center px-2 py-2 font-bold text-gray-400">PTS</th>
           </tr>
@@ -92,6 +94,8 @@ function TablaEquipos({ rows }) {
                 <td className="text-center px-2 py-3 text-gray-400">{e.pg}</td>
                 <td className="text-center px-2 py-3 text-gray-400 hidden sm:table-cell">{e.pe}</td>
                 <td className="text-center px-2 py-3 text-gray-400 hidden sm:table-cell">{e.pp}</td>
+                <td className="text-center px-2 py-3 text-gray-400 hidden sm:table-cell">{e.gf}</td>
+                <td className="text-center px-2 py-3 text-gray-400 hidden sm:table-cell">{e.gc}</td>
                 <td className={`text-center px-2 py-3 font-medium hidden md:table-cell ${dg > 0 ? 'text-green-400' : dg < 0 ? 'text-red-400' : 'text-gray-500'}`}>
                   {dg > 0 ? `+${dg}` : dg}
                 </td>
@@ -159,7 +163,7 @@ export default function PublicoPosiciones() {
       }
 
       <p className="text-xs text-gray-700 text-center">
-        PJ Jugados · PG Ganados · PE Empatados · PP Perdidos · DG Diferencia · PTS Puntos
+        PJ Jugados · PG Ganados · PE Empatados · PP Perdidos · GF Goles Favor · GC Goles Contra · DG Diferencia · PTS Puntos
       </p>
     </div>
   )

@@ -17,7 +17,11 @@ function useResumen(campeonatoId) {
         supabase.from('inscripciones').select('equipo_id').eq('campeonato_id', campeonatoId),
         supabase.from('partidos')
           .select('*, equipo_local:equipos!partidos_equipo_local_id_fkey(nombre,color_principal), equipo_visitante:equipos!partidos_equipo_visitante_id_fkey(nombre,color_principal)')
-          .eq('campeonato_id', campeonatoId).order('fecha').limit(6),
+          .eq('campeonato_id', campeonatoId)
+          .not('fecha', 'is', null)
+          .neq('estado', 'finalizado')
+          .order('fecha')
+          .limit(6),
       ])
 
       const equipoIds = inscQ.data?.map(i => i.equipo_id) ?? []

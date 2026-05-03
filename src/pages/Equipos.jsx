@@ -111,7 +111,7 @@ export default function Equipos() {
       </div>
 
       {isLoading ? <TableSkeleton rows={5} cols={1} /> : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid gap-4 grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {equipos?.map(e => {
             const isUploadingThis = uploadingCardId === e.id
             const inicial = (e.nombre?.[0] ?? '?').toUpperCase()
@@ -126,10 +126,10 @@ export default function Equipos() {
                     borderBottom: `2px solid ${e.color_principal}30`,
                   }}
                 >
-                  {/* Puntos de color arriba-derecha */}
-                  <div className="absolute top-3 right-3 flex gap-1.5">
-                    <span className="w-3.5 h-3.5 rounded-full border-2 border-white shadow-sm" style={{ backgroundColor: e.color_principal }} title="Color principal" />
-                    <span className="w-3.5 h-3.5 rounded-full border-2 border-white shadow-sm" style={{ backgroundColor: e.color_secundario }} title="Color secundario" />
+                  {/* Franja de colores arriba — tipo camiseta */}
+                  <div className="absolute top-0 left-0 right-0 h-2 flex rounded-t-none overflow-hidden">
+                    <div className="flex-1" style={{ backgroundColor: e.color_principal }} />
+                    <div className="flex-1" style={{ backgroundColor: e.color_secundario }} />
                   </div>
 
                   {/* Escudo con overlay de upload */}
