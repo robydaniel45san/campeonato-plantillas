@@ -4,6 +4,7 @@ import { useFases, useFaseMutations } from '@/hooks/useFases'
 import { useEquipos } from '@/hooks/useEquipos'
 import { useGenerarFixture } from '@/hooks/useFixture'
 import { useCampeonato } from '@/context/CampeonatoContext'
+import { supabase } from '@/lib/supabase'
 import { useToast } from '@/components/ui/Toast'
 import { Button } from '@/components/ui/Button'
 import { Card, CardHeader, CardBody } from '@/components/ui/Card'
@@ -128,6 +129,17 @@ function FaseCard({ fase, equiposInscritos, mutations }) {
     if (!equiposSelec || equiposSelec.length < 2) {
       toast('Necesitas al menos 2 equipos', 'warning'); return
     }
+
+    // Verificar si ya existen partidos para esta fase
+    const { count } = await supabase
+      .from('partidos')
+      .select('id', { count: 'exact', head: true })
+      .eq('fase_id', fase.id)
+    if (count > 0) {
+      toast(`Esta fase ya tiene ${count} partidos generados. Elimínalos primero si deseas regenerar.`, 'error')
+      return
+    }
+
     try {
       const total = await generarFixture.mutateAsync({
         equipos: equiposSelec,

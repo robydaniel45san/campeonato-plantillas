@@ -9,27 +9,16 @@ import { Modal } from '@/components/ui/Modal'
 import { Input } from '@/components/ui/Input'
 import { TableSkeleton } from '@/components/ui/Skeleton'
 import { supabase } from '@/lib/supabase'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQueryClient } from '@tanstack/react-query'
 
 const EMPTY = { nombre: '', color_principal: '#16a34a', color_secundario: '#ffffff', ciudad: '', fundado_en: '' }
 
-function useInscripcion(campeonatoId) {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: async (equipo_id) => {
-      const { error } = await supabase.from('inscripciones').upsert({ campeonato_id: campeonatoId, equipo_id })
-      if (error) throw error
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['equipos'] }),
-  })
-}
-
 export default function Equipos() {
   const { campeonatoActivo } = useCampeonato()
-  const { data: equipos, isLoading } = useEquipos()
-  const { data: inscritos } = useEquipos(campeonatoActivo?.id)
+  // Solo equipos inscritos en el campeonato activo
+  const { data: equipos, isLoading } = useEquipos(campeonatoActivo?.id)
   const { crear, actualizar, eliminar, uploadEscudo } = useEquipoMutations()
-  const inscribir = useInscripcion(campeonatoActivo?.id)
+  const qc = useQueryClient()
   const { toast } = useToast()
   const [modal, setModal] = useState(false)
   const [form, setForm] = useState(EMPTY)
@@ -40,8 +29,6 @@ export default function Equipos() {
   const fileRef = useRef()
   const cardFileRefs = useRef({})
 
-  const inscritosIds = new Set(inscritos?.map(e => e.id) ?? [])
-
   const abrirNuevo = () => { setForm(EMPTY); setEditId(null); setModal(true) }
   const abrirEditar = (e) => { setForm({ ...e, fundado_en: e.fundado_en ?? '' }); setEditId(e.id); setModal(true) }
 
@@ -49,9 +36,16 @@ export default function Equipos() {
     try {
       const payload = { ...form }
       if (!payload.fundado_en) delete payload.fundado_en
-      if (editId) await actualizar.mutateAsync({ id: editId, ...payload })
-      else await crear.mutateAsync(payload)
-      toast(editId ? 'Equipo actualizado' : 'Equipo creado')
+      if (editId) {
+        await actualizar.mutateAsync({ id: editId, ...payload })
+      } else {
+        // Crear equipo e inscribirlo automáticamente en el campeonato activo
+        const { data: nuevo, error } = await supabase.from('equipos').insert(payload).select().single()
+        if (error) throw error
+        await supabase.from('inscripciones').insert({ campeonato_id: campeonatoActivo.id, equipo_id: nuevo.id })
+        qc.invalidateQueries({ queryKey: ['equipos'] })
+      }
+      toast(editId ? 'Equipo actualizado' : 'Equipo creado e inscrito')
       setModal(false)
     } catch (e) {
       toast(e.message, 'error')
@@ -101,34 +95,24 @@ export default function Equipos() {
     }
   }
 
-  const toggleInscripcion = async (equipo) => {
-    try {
-      if (inscritosIds.has(equipo.id)) {
-        await supabase.from('inscripciones')
-          .delete()
-          .eq('campeonato_id', campeonatoActivo.id)
-          .eq('equipo_id', equipo.id)
-        toast(`${equipo.nombre} desinscrito`)
-      } else {
-        await inscribir.mutateAsync(equipo.id)
-        toast(`${equipo.nombre} inscrito en ${campeonatoActivo.nombre}`)
-      }
-    } catch (e) {
-      toast(e.message, 'error')
-    }
-  }
+  if (!campeonatoActivo) return (
+    <div className="flex flex-col items-center justify-center py-16 text-center">
+      <Shield size={48} className="text-gray-200 mb-3" />
+      <p className="text-gray-500 font-medium">Selecciona un campeonato</p>
+      <p className="text-gray-400 text-sm">Ve a Campeonatos y presiona "Seleccionar"</p>
+    </div>
+  )
 
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-gray-500">{equipos?.length ?? 0} equipos registrados</p>
+        <p className="text-sm text-gray-500">{equipos?.length ?? 0} equipos en <span className="font-medium text-gray-700">{campeonatoActivo.nombre}</span></p>
         <Button onClick={abrirNuevo}><Plus size={16} />Nuevo equipo</Button>
       </div>
 
       {isLoading ? <TableSkeleton rows={5} cols={1} /> : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {equipos?.map(e => {
-            const inscrito = inscritosIds.has(e.id)
             const isUploadingThis = uploadingCardId === e.id
             const inicial = (e.nombre?.[0] ?? '?').toUpperCase()
 
@@ -197,19 +181,7 @@ export default function Equipos() {
 
                 {/* Acciones */}
                 <div className="flex gap-1.5 p-3">
-                  {campeonatoActivo && (
-                    <button
-                      onClick={() => toggleInscripcion(e)}
-                      className={`flex-1 text-xs px-2 py-1.5 rounded-lg font-semibold transition-colors ${
-                        inscrito
-                          ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                      }`}
-                    >
-                      {inscrito ? '✓ Inscrito' : '+ Inscribir'}
-                    </button>
-                  )}
-                  <Button variant="ghost" size="icon" onClick={() => abrirEditar(e)}><Pencil size={14} /></Button>
+                  <Button variant="ghost" size="icon" className="flex-1" onClick={() => abrirEditar(e)}><Pencil size={14} /></Button>
                   <Button variant="ghost" size="icon" className="text-red-400 hover:bg-red-50" onClick={() => setConfirmDelete(e.id)}>
                     <Trash2 size={14} />
                   </Button>
@@ -300,7 +272,7 @@ export default function Equipos() {
 
       {/* Confirm delete */}
       <Modal open={!!confirmDelete} onClose={() => setConfirmDelete(null)} title="Eliminar equipo" size="sm">
-        <p className="text-sm text-gray-600 mb-5">¿Eliminar este equipo? Se eliminará su historial y jugadores asociados.</p>
+        <p className="text-sm text-gray-600 mb-5">¿Eliminar este equipo del campeonato? Se eliminará el equipo y todos sus datos (jugadores, partidos).</p>
         <div className="flex gap-3">
           <Button variant="secondary" className="flex-1" onClick={() => setConfirmDelete(null)}>Cancelar</Button>
           <Button variant="danger" className="flex-1" onClick={borrar} disabled={eliminar.isPending}>
