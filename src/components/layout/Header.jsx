@@ -37,7 +37,7 @@ export function Header({ title, onMenuClick }) {
               {campeonatoActivo?.nombre ?? 'Seleccionar'}
             </span>
             {campeonatoActivo && (
-              <span className={cn('hidden sm:inline px-1.5 py-0.5 rounded-full text-xs font-medium', estadoColor[campeonatoActivo.estado])}>
+              <span className={cn('px-1.5 py-0.5 rounded-full text-xs font-medium', estadoColor[campeonatoActivo.estado])}>
                 {campeonatoActivo.estado}
               </span>
             )}

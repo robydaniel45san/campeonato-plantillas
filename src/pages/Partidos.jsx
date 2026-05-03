@@ -202,8 +202,27 @@ export default function Partidos() {
       </div>
 
       {isLoading ? <TableSkeleton rows={5} cols={4} /> : (
-        <div className="space-y-2">
-          {partidosFiltrados?.map(p => {
+        <div className="space-y-4">
+          {(() => {
+            // Agrupar por jornada
+            const jornadasMap = new Map()
+            for (const p of partidosFiltrados ?? []) {
+              const key = p.jornada ?? 0
+              if (!jornadasMap.has(key)) jornadasMap.set(key, [])
+              jornadasMap.get(key).push(p)
+            }
+            const jornadas = Array.from(jornadasMap.entries()).sort((a, b) => a[0] - b[0])
+            return jornadas.map(([jornada, partidos]) => (
+              <div key={jornada}>
+                {jornada > 0 && (
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="h-px flex-1 bg-gray-100" />
+                    <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Jornada {jornada}</span>
+                    <div className="h-px flex-1 bg-gray-100" />
+                  </div>
+                )}
+                <div className="space-y-2">
+                {partidos.map(p => {
             const est = ESTADO_PARTIDO[p.estado]
             return (
               <Card key={p.id} className="p-3 sm:p-4 hover:shadow-md transition-shadow">
@@ -272,7 +291,11 @@ export default function Partidos() {
               </Card>
             )
           })}
-          {partidosFiltrados?.length === 0 && (
+                </div>
+              </div>
+            ))
+          })()}
+          {(partidosFiltrados?.length === 0) && (
             <div className="flex flex-col items-center py-16 text-center">
               <Calendar size={48} className="text-gray-200 mb-3" />
               <p className="text-gray-500">Sin partidos registrados</p>
